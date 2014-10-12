@@ -1,0 +1,9 @@
+# NetBeans
+nbproject/
+
+# NodeJS modules
+node_modules/
+
+# Grunt build:openshift
+build/
+

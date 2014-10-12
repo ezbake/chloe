@@ -1,0 +1,73 @@
+<!--   Copyright (C) 2013-2014 Computer Sciences Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. -->
+
+<html>
+<head>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var ws = new WebSocket('ws://localhost:8001');
+      
+      // Web socket is closed if no data is sent within 60 seconds, so we're sending the server a ping
+      // every 55 seconds to keep the web socket alive
+      if (ws) {
+        setInterval(function() {
+          if (ws.readyState === 1) {
+            ws.send(JSON.stringify({ status: "keep-alive" }));
+          } else if (ws.readyState === 2 || ws.readyState === 3) {
+            // If the web socket is closed or closing, reopen it
+            var onopen = ws.onopen;
+            var onmessage = ws.onmessage;
+            var onclose = ws.onclose;
+            var onerror = ws.onerror;
+            ws = new WebSocket(chloeUri);
+            ws.open = onopen;
+            ws.onmessage = onmessage;
+            ws.onclose = onclose;
+            ws.onerror = onerror;
+          }
+        }, 55000);
+      }
+
+      ws.onopen = function() {
+        ws.send(JSON.stringify({ app: "globalsearch", channel: "master" }));       
+      };
+      ws.onerror = function(e) {
+        console.log(e);
+      }
+      ws.onclose = function(e) {
+        console.log(e);
+      }
+
+      $("#btnSend").click(function() {
+        var appTitle = $("#appTitle").val();
+        var channel = $("#channel").val();
+        var SSRs = JSON.parse($("#SSRs").val());
+        ws.send(JSON.stringify({ app: appTitle, channel: channel, SSRs: SSRs }));
+      });
+    });
+  </script>
+<head>
+<body>
+  <div id="container">
+    App Title: <input id="appTitle" value="appTitle" />
+    <br />
+    Channel: <input id="channel" value="1234567890" />
+    <br />
+    <textarea id="SSRs" rows="20" cols="80">[{"uri":"SOCIAL://twitter/398867424336179201","security":{"classification":"U"},"snippet":"snippet text","resultDate":{"date":{"month":11,"day":8,"year":2013},"time":{"hour":17,"minute":39,"tz":{"hour":5,"minute":0,"afterUTC":0}}},"prefix":"SOCIAL://twitter/","id":"398867424336179201","webApplicationLinks":[]}]</textarea>
+    <br />
+    <button id="btnSend" type="button">Send</button>
+  </div>
+<body>
+</html>
