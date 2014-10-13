@@ -150,9 +150,7 @@ RedisSubscriptionSupervisor.prototype.subscribe = function(channel, subscriber, 
                 subscriptions[channel] = []
             }
 
-            // Since the md5 hash of the user principal is used as part of the redis channel name, use 
-            // the md5 hash of the whole user object so that the channel name can't be derived from it
-            userInfo.md5 = md5(JSON.stringify(userInfo));
+            userInfo.md5 = md5(JSON.stringify(userInfo.principal));
             subscriptions[channel].push({ appInfo: appInfo, userInfo: userInfo });
             redisClient.set(CHLOE_SUBSCRIPTIONS_REDIS_KEY, JSON.stringify(subscriptions), function(err, reply) {
                 if (err) {
@@ -180,7 +178,7 @@ RedisSubscriptionSupervisor.prototype.unsubscribe = function(channel, subscriber
             // Update the bookkeeping object to indicate that this channel has one fewer subscriber
             var subscriptions = JSON.parse(reply);
             var index;
-            userInfo.md5 = md5(JSON.stringify(userInfo));
+            userInfo.md5 = md5(JSON.stringify(userInfo.principal));
             for (var i = 0; i < subscriptions[channel].length; i++) {
                 if (userInfo.md5 === subscriptions[channel][i].userInfo.md5) {
                     index = i;

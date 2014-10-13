@@ -115,9 +115,6 @@ wss.on('connection', function(ws) {
     console.log((new Date()) + " WebSocket server received connection");
 
     ws.on('message', function(message) {
-       console.log((new Date()) + " Received message: " + message);
-       console.log("Message: " + util.inspect(this.upgradeReq.headers));
-
         ezbakeSecurityClient.fetchTokenForProxiedUser(this.upgradeReq, function(err, token) {
             if (err) {
                 console.error((new Date()) + " EzSecuruity returned an error: \n\t" + err +
@@ -174,7 +171,7 @@ wss.on('connection', function(ws) {
                         redisSubscribers.add(websocketId, redisSubscriber, channel, redisClient);
                         sendUpdate(userHash, channel, master);
                     });
-                })(ws.id, redisSubscriber, master, channel, md5(JSON.stringify(userInfo)));
+                })(ws.id, redisSubscriber, master, channel, md5(JSON.stringify(userInfo.principal)));
             }
         });
     });
